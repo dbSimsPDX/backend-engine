@@ -44,7 +44,7 @@ GET /assets
 - returns all available assets available for purchase
 
 ```
-POST /user/:username/assets
+POST /user/<username>/assets
 ```
 - copy an asset `_id` from `GET /assets`
 - add the `_id` to the `body`
@@ -68,7 +68,7 @@ GET /education
 - returns all available education options for purchase
 
 ```
-POST /user/:username/education
+POST /user/<username>/education
 ```
 - copy an education `_id` from `GET /education`
 - add the `_id` to the `body`
@@ -82,7 +82,7 @@ GET /activities
 - returns all available activities available for purchase
 
 ```
-POST /user/:username/activities
+POST /user/<username>/activities
 ```
 - copy an activity `_id` from `GET /activities`
 - add the `_id` to the `body`
