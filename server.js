@@ -16,4 +16,4 @@ server.listen(port, () => {
 	console.log('server is running on ', server.address());
 });
 
-setInterval(findAndUpdate, 5000);
+//setInterval(findAndUpdate, 1000);
