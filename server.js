@@ -1,7 +1,11 @@
+
 const http = require('http');
 const app = require('./lib/app');
+require('mongoose');
 
-// const updater = require('./routes/update-user');
+const findAndUpdate = require('./lib/update-user');
+// const User = require('./lib/models/user.model');
+
 
 require('./lib/connection');
 
@@ -12,5 +16,4 @@ server.listen(port, () => {
 	console.log('server is running on ', server.address());
 });
 
-// TODO: add function to make a list of users to update; users who recently logged in 
-// setInterval(updater/*update function here*/, 86400);
+setInterval(findAndUpdate, 86400);
