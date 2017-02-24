@@ -9,7 +9,6 @@ const mongoose = require('mongoose');
 process.env.DB_URI = 'mongodb://localhost:27017/user-api-test';
 require('../../lib/connection');
 
-
 describe('user', () => {
     before(() => mongoose.connection.dropDatabase());
 
@@ -53,15 +52,15 @@ describe('user', () => {
 
         it('can\'t use same user name', () => 
                 request
-                .post('/user/signup')
-                .send(user)
-                .then(
-                    () => { throw new Error('status should not be ok'); },
-                    res => {
-                        assert.equal(res.status, 400);
-                        assert.equal(res.response.body.error, 'username user already exists');
-                    }
-                )
+                    .post('/user/signup')
+                    .send(user)
+                    .then(
+                        () => { throw new Error('status should not be ok'); },
+                        res => {
+                            assert.equal(res.status, 400);
+                            assert.equal(res.response.body.error, 'username user already exists');
+                        }
+                    )
         );
 
         it('signin requires username', () => 
@@ -84,6 +83,81 @@ describe('user', () => {
                     }
                 )
         );
+
+        it('user can delete own account', () => {
+            let unhappyUser = {
+                username: 'unhappy',
+                password: 'abcd'
+            };
+
+            return request
+                .post('/user/signup')
+                .send(unhappyUser)
+                .then(res => res.body.token)
+                .then((token) => {
+                    return request
+                        .delete('/user/me')
+                        .set('Authorization', token);
+                })
+                .then(res => {
+                    assert.isOk(res.body.message);
+                });  
+        });
+
+        it('user can update username', () => {
+            let changeUser = {
+                username: 'mrbigglesworth',
+                password: 'abcd'
+            };
+
+            return request
+                .post('/user/signup')
+                .send(changeUser)
+                .then(res => res.body.token)
+                .then((token) => {
+                    return request
+                        .patch('/user/me/changeAccountInfo')
+                        .send({username: 'hungrymonkey'})
+                        .set('Authorization', token);
+                })
+                .then(res => {
+                    console.log(res.body.username);
+                    assert.equal(res.body.username, 'hungrymonkey');
+                });
+        });
+
+        it('user can update username and password', () => {
+            let changeUser = {
+                username: 'mrbigglesworth',
+                password: 'abcd'
+            };
+            
+            let userHash = '';
+            
+            let newHash = '';
+
+            return request
+                .post('/user/signup')
+                .send(changeUser)
+                .then(res => res.body.token)
+                .then((token) => {
+                    return request
+                        .get('/user/mrbigglesworth')
+                        .set('Authorization', token)
+                        .then(res => {
+                            userHash = res.body.hash;
+                            return request
+                            .patch('/user/me/changeAccountInfo')
+                            .send({password: 'efgh'})
+                            .set('Authorization', token)
+                            .then(res => newHash = res.body.hash);
+                        });
+                })
+                .then(res => {
+                    console.log('NEWHASH', newHash, 'USERHASH', userHash);
+                    assert.notEqual(newHash, userHash);
+                });
+        });
     });
     
     describe('user during play', () => {
@@ -100,15 +174,13 @@ describe('user', () => {
         model: 'Tiny Home',
         purchase_price: 1000
         };
-    
-
-        const request = chai.request(app);
 
         function saveAsset (token, asset) {
-        return request.post('/assets')
-            .send(asset)
-            .set('Authorization', token)
-            .then(res => res.body);
+            return request
+                .post('/assets')
+                .send(asset)
+                .set('Authorization', token)
+                .then(res => res.body);
         }
         
         it('receives properties to user object on signup', () => {
