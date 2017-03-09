@@ -1,7 +1,7 @@
 # dbSimsPDX
 A backend game of life. 
 
-**Initial Grading Commit**
+**Nice Job on README**
 
 # [Visit the game on Heroku](https://dbsimspdx.herokuapp.com/)
 

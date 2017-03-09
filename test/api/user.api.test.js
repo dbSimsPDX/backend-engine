@@ -121,7 +121,6 @@ describe('user', () => {
                         .set('Authorization', token);
                 })
                 .then(res => {
-                    console.log(res.body.username);
                     assert.equal(res.body.username, 'hungrymonkey');
                 });
         });
@@ -145,6 +144,8 @@ describe('user', () => {
                         .get('/user/mrbigglesworth')
                         .set('Authorization', token)
                         .then(res => {
+                            // better test would be to signin with new password
+
                             userHash = res.body.hash;
                             return request
                             .patch('/user/me/changeAccountInfo')
@@ -154,7 +155,6 @@ describe('user', () => {
                         });
                 })
                 .then(res => {
-                    console.log('NEWHASH', newHash, 'USERHASH', userHash);
                     assert.notEqual(newHash, userHash);
                 });
         });
@@ -218,7 +218,6 @@ describe('user', () => {
                 .send({ johnDoeToken, _id: testAsset3._id })
                 .set('Authorization', johnDoeToken)
                 .then(res => {
-                    console.log('RESPONSE', res.body);
                     assert.equal(res.body.assets.length, 1);
                     assert.ok(res.body.assets[0].asset_name);
                 })
