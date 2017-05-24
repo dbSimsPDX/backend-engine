@@ -11,12 +11,13 @@ Spending money on assets, means you own cool stuff and your networth doesn't cha
 Spending money on activities, means you get to participate in something fun with a chance of winning a reward!
 Keep in mind, a day in real life is a month in game time. Each day, you will be paid your salary automatically.
 
-## Getting Started // NEEDS EDITING and add HEROKU?
+## Getting Started
 1. Install [Node.js](https://nodejs.org/en/)
 2. Run `git clone https://github.com/dbSimsPDX/backend-engine.git`
 3. Run `npm install`
 
 ## How to play
+\* dbSimsPDX runs solely on the backend. For the full experience we recommend running the play commands via [Postman](https://www.getpostman.com/)
 
 ### User Signup
 ```
