@@ -48,7 +48,7 @@ describe('assets REST API', () => {
         return request
             .post('/user/signup')
             .send(janeDoe)
-            .then((res) => {
+            .then(res => {
                 console.log('JANE', res.body);
                 janeDoeToken = res.body.token;
                 return Promise.all([

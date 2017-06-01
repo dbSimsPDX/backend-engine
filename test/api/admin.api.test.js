@@ -17,19 +17,17 @@ describe('admin user', () =>{
     describe('admin management', () => {
 
         const admin = {
-        username: 'admin',
-        password: 'supersekritadminpassword'
+            username: 'admin',
+            password: 'supersekritadminpassword'
         };
         
-        let token = '';
-
         let newAsset = {
-                asset_type: 'Vehicle',
-                model: 'Tricycle',
-                purchase_price: 100,
-                current_value: 100,
-                monthly_appreciation_percentage: 0
-            };
+            asset_type: 'Vehicle',
+            model: 'Tricycle',
+            purchase_price: 100,
+            current_value: 100,
+            monthly_appreciation_percentage: 0
+        };
     
         let newEd = {
             educationLevel: 'High School',
@@ -43,43 +41,36 @@ describe('admin user', () =>{
             rewardAmount: 100,
             rewardMessage: 'Congratulations! You just won $100. Keep rolling!'
         };
-    
-        const badRequest = (url, data, error) =>
-            request
-                .post(url)
-                .send(data)
-                .then(
-                    () => { throw new Error('status should not be ok'); },
-                    res => {
-                        assert.equal(res.status, 400);
-                        assert.equal(res.response.body.error, error);
-                    }
-                );
 
-        const badAdminRequest = (url, data, error) =>
+        /* Refactor these two functions, they are nearly identical
+        Use a higher order function (or just add a status code property) */
+ 
+        const badRequest = (url, data, statusCode, error) =>
             request
                 .post(url)
                 .send(data)
                 .then(
                     () => { throw new Error('status should not be ok'); },
                     res => {
-                        console.log(res.status);
-                        assert.equal(res.status, 401);
+                        assert.equal(res.status, statusCode);
                         assert.equal(res.response.body.error, error);
                     }
                 );
 
         it('admin signup requires username', () =>
-            badRequest('/admin/signup', {password: 'supersekritadminpassword'}, 'username and password must be provided')
+            badRequest('/admin/signup', {password: 'supersekritadminpassword'}, 400, 'username and password must be provided')
         );
 
         it('admin signup requires password', () =>
-            badRequest('/admin/signup', {username: 'horatio'}, 'username and password must be provided')
+            badRequest('/admin/signup', {username: 'horatio'}, 400, 'username and password must be provided')
         );
 
         it('admin signup requires username and special admin password', () =>
-            badAdminRequest('/admin/signup', {username: 'horatio', password: 'notsupersekritadminpassword'}, 'Unauthorized to Create Admin Account')
+            badRequest('/admin/signup', {username: 'horatio', password: 'notsupersekritadminpassword'}, 401, 'Unauthorized to Create Admin Account')
         );
+
+        // move this closer so it is near where it is assigned
+        let token = '';
 
         it('admin signup', () => 
             request
@@ -88,6 +79,7 @@ describe('admin user', () =>{
                 .then(res => assert.ok(token = res.body.token))
         );
 
+        // why not use the badRequest function to test?
         it('can\'t use same user name', () => 
             request
                 .post('/admin/signup')
@@ -100,13 +92,24 @@ describe('admin user', () =>{
                     }
                 )
         );
-///////////////Admin Asset CRUD Tests////////////
-        it('can create new assets', () => {
 
+        // Make a new describe block to group tests, or seperate files, but not a comment!
+///////////////Admin Asset CRUD Tests////////////
+
+        // 1) All of these tests start the same way.
+        // 2) One option is to put that functionality in a function:
+
+        function getAdminToken(){
             return request
                 .post('/admin/signin')
                 .send(admin)
-                .then(res => res.body.token)
+                .then(res => res.body.token);       
+        }
+
+
+        it('can create new assets', () => {
+            // 3) then just start with that promise
+            return getAdminToken()
                 .then((token) => {
                     return request
                     .post('/admin/assets')
@@ -118,24 +121,19 @@ describe('admin user', () =>{
                 });
         });
 
-        it('can update an asset', () =>{
-            let assetId = '';
+         
 
+        it('can update an asset', () =>{
+            // 4) better option would be to put in `before` and store admin token.
+            /// then code would just be:
             return request
-                .post('/admin/signin')
-                .send(admin)
-                .then(res => res.body.token)
-                .then((token) => {
-                    return request
-                        .post('/admin/assets')
-                        .send(newAsset)
-                        .set('Authorization', token)
-                        .then(res => {
-                            assetId = res.body._id;
-                            return res.body;
-                        });
+                .post('/admin/assets')
+                .send(newAsset)
+                .set('Authorization', adminToken)
+                .then(res => {
+                    return res.body._id;
                 })
-                .then(() => {
+                .then(assetId => {
                     return request
                         .patch('/admin/assets')
                         .send({_id: assetId, model: 'Volvo'})
@@ -147,8 +145,6 @@ describe('admin user', () =>{
         });
 
         it('can delete an asset', () => {
-            let assetId = '';
-
             return request
                 .post('/admin/signin')
                 .send(admin)
@@ -157,13 +153,12 @@ describe('admin user', () =>{
                     return request
                         .post('/admin/assets')
                         .send(newAsset)
-                        .set('Authorization', token)
-                        .then(res => {
-                            assetId = res.body._id;
-                            return res.body;
-                        });
+                        .set('Authorization', token);
                 })
-                .then(() => {
+                .then(res => {
+                    return res.body._id;
+                })
+                .then(assetId => {
                     return request 
                         .delete('/admin/assets')
                         .send({_id: assetId})
@@ -180,21 +175,20 @@ describe('admin user', () =>{
                 .post('/admin/signin')
                 .send(admin)
                 .then(res => res.body.token)
-                .then((token) => {
-                    console.log(token);
+                .then(token => {
                     return request
-                    .post('/admin/education')
-                    .send(newEd)
-                    .set('Authorization', token);
+                        .post('/admin/education')
+                        .send(newEd)
+                        .set('Authorization', token);
                 })
                 .then(res => {
                     assert.equal(res.status, 200);
+                    // anything else you can assert?
+                    // is a response body expected?
                 });
         });
 
         it('can update an education', () =>{
-            let edId = '';
-
             return request
                 .post('/admin/signin')
                 .send(admin)
@@ -204,12 +198,11 @@ describe('admin user', () =>{
                         .post('/admin/education')
                         .send(newEd)
                         .set('Authorization', token)
-                        .then(res => {
-                            edId = res.body._id;
-                            return res.body;
-                        });
                 })
-                .then(() => {
+                .then(res => {
+                    return res.body._id;
+                })
+                .then(edId => {
                     return request
                         .patch('/admin/education')
                         .send({_id: edId, educationLevel: 'College'})

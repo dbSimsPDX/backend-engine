@@ -2,6 +2,8 @@ const User = require('../lib/models/user.model');
 const assert = require('chai').assert;
 
 describe('user model', () => {
+    // you alread have `test-invalid.js`,
+    // don't duplicate code!
     const Model = function(User) {
         return (data) => new User(data)
             .validate()
